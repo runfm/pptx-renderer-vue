@@ -1,10 +1,38 @@
+import {
+  xpathSelector,
+  NS,
+  extractPictureRestrictions,
+} from "@/modules/pptx_parser_module/utils/xpath.js";
+
+class PptPicture {
+  constructor(picNode) {
+    const doc = picNode.ownerDocument;
+    const locsNode = xpathSelector(
+      "./p:nvPicPr/p:cNvPicPr/a:picLocks",
+      doc,
+      picNode
+    );
+    this.restrictions = extractPictureRestrictions(locsNode);
+    const propsNode = xpathSelector("./p:nvPicPr/p:cNvPr", doc, picNode);
+    this.props = {
+      id: propsNode?.getAttribute("id"),
+      name: propsNode?.getAttribute("name"),
+    };
+    debugger;
+  }
+}
+
 class PptSlide {
   constructor(name, content) {
     this.name = name;
-    this._content = content;
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, "text/xml");
-    debugger
+    const root = xpathSelector("//p:sld/p:cSld/p:spTree", doc);
+    const picNodes = root.getElementsByTagNameNS(NS.p, "pic");
+    this._doc = doc;
+    this._treeRoot = root;
+    debugger;
+    this.pictures = Array.from(picNodes).map((item) => new PptPicture(item));
   }
 }
 
